@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dodo Payments + Supabase Boilerplate Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8fafc;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step {
+            margin-bottom: 40px;
+            padding: 30px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .step h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .result.success {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .result.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        .result.info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .config-section {
+            background: #fffbeb;
+            border: 1px solid #fed7aa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .config-section h3 {
+            color: #b45309;
+            margin-bottom: 15px;
+        }
+
+        .config-section p {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+
+        .payment-link {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .payment-link:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦤 Dodo Payments + Supabase</h1>
+            <p>End-to-End Payment Integration Demo</p>
+        </div>
+
+        <div class="content">
+            <div class="config-section">
+                <h3>⚠️ Configuration Required</h3>
+                <p>Before testing, make sure you have:</p>
+                <ul>
+                    <li>Set up your Supabase project and deployed the Edge Functions</li>
+                    <li>Configured your Dodo Payments API keys</li>
+                    <li>Updated the base URL below to point to your Supabase functions</li>
+                </ul>
+            </div>
+
+            <!-- Configuration -->
+            <div class="step">
+                <h2>🔧 Configuration</h2>
+                <div class="form-group">
+                    <label for="baseUrl">Main Application Base URL:</label>
+                    <input type="url" id="baseUrl" value="http://localhost:3000" 
+                           placeholder="http://localhost:3000">
+                </div>
+                <div class="form-group">
+                    <label for="apiKey">API Key (Optional):</label>
+                    <input type="password" id="apiKey" placeholder="Your Supabase anon key">
+                </div>
+            </div>
+
+            <!-- Step 1: Customer Signup -->
+            <div class="step">
+                <h2>👤 Step 1: Customer Signup</h2>
+                <p>Create a customer in both Supabase and Dodo Payments:</p>
+                
+                <div class="form-group">
+                    <label for="customerEmail">Email:</label>
+                    <input type="email" id="customerEmail" value="test@example.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customerName">Name:</label>
+                    <input type="text" id="customerName" value="Test User" required>
+                </div>
+                
+                <button class="btn" onclick="createCustomer()">Create Customer</button>
+                
+                <div id="customerResult"></div>
+            </div>
+
+            <!-- Step 2: Create Subscription & Go to Checkout -->
+            <div class="step">
+                <h2>💳 Step 2: Create Subscription & Go to Checkout</h2>
+                <p>Creates a subscription record and redirects to Dodo Payments checkout.</p>
+                
+                <div class="form-group">
+                    <label for="checkoutEmail">Customer Email:</label>
+                    <input type="email" id="checkoutEmail" value="test@example.com" required>
+                    <small>Note: This customer must be created first using Step 1.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="checkoutProductId">Product ID:</label>
+                    <input type="text" id="checkoutProductId" value="prod_example_123" required>
+                    <small>Note: You need to create this product in your Dodo Payments dashboard first.</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="billingInterval">Billing Interval:</label>
+                    <select id="billingInterval">
+                        <option value="month" selected>Monthly</option>
+                        <option value="year">Yearly</option>
+                    </select>
+                </div>
+                
+                <button class="btn" onclick="createSubscriptionAndCheckout()">🚀 Create Subscription & Go to Checkout</button>
+                
+                <div id="checkoutResult"></div>
+            </div>
+
+            <!-- Step 3: Manual Testing Instructions -->
+            <div class="step">
+                <h2>🧪 End-to-End Testing Flow</h2>
+                <p>Follow these steps to test the complete integration:</p>
+                <ol>
+                    <li><strong>Configure URLs:</strong> Ensure the Supabase Functions Base URL and Anon Key are set correctly above.</li>
+                    <li><strong>Create a Customer:</strong> Use Step 1 to sign up a new user. This creates records in both Supabase and Dodo Payments.</li>
+                    <li><strong>Create Subscription:</strong> Use Step 2 to initiate a subscription for the customer from Step 1.</li>
+                    <li><strong>Complete Payment:</strong> You will be redirected to the Dodo Payments checkout page. Complete the test payment.</li>
+                    <li><strong>Check Webhook Logs:</strong> In your terminal, view the webhook logs using `npx supabase functions logs webhook`. You should see a `payment.succeeded` and `subscription.active` event.</li>
+                    <li><strong>Verify Database:</strong> Go to your Supabase dashboard and check that the `subscriptions` table for your customer has been updated to `active`.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update webhook URL when base URL changes
+        document.getElementById('baseUrl').addEventListener('input', updateWebhookUrl);
+        updateWebhookUrl();
+
+        function updateWebhookUrl() {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const webhookUrl = baseUrl + '/webhook';
+            
+            // This function was referencing a non-existent element, simplified for now
+            console.log('Webhook URL would be:', webhookUrl);
+        }
+
+        function showResult(elementId, content, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="result ${type}">${content}</div>`;
+        }
+
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="result info"><span class="loading"></span>Processing...</div>`;
+        }
+
+        async function makeRequest(endpoint, data) {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const apiKey = document.getElementById('apiKey').value;
+            
+            if (!baseUrl) {
+                throw new Error('Please configure the base URL first');
+            }
+
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            // Add API key if provided (optional for local development)
+            if (apiKey) {
+                headers['Authorization'] = `Bearer ${apiKey}`;
+            }
+
+            const response = await fetch(`${baseUrl}/${endpoint}`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || `HTTP ${response.status}`);
+            }
+
+            return result;
+        }
+
+        async function createCustomer() {
+            const email = document.getElementById('customerEmail').value;
+            const name = document.getElementById('customerName').value;
+
+            if (!email || !name) {
+                showResult('customerResult', 'Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                showLoading('customerResult');
+                
+                const result = await makeRequest('api/signup', {
+                    email: email,
+                    name: name
+                });
+
+                showResult('customerResult', `✅ Customer created successfully!
+
+Customer ID: ${result.customer.id}
+Dodo Customer ID: ${result.customer.dodo_customer_id}
+Email: ${result.customer.email}
+Name: ${result.customer.name}
+Created: ${result.customer.created_at}`, 'success');
+
+                document.getElementById('checkoutEmail').value = email;
+
+            } catch (error) {
+                showResult('customerResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function createSubscriptionAndCheckout() {
+            const email = document.getElementById('checkoutEmail').value;
+            const productId = document.getElementById('checkoutProductId').value;
+            const billingInterval = document.getElementById('billingInterval').value;
+
+            if (!email || !productId) {
+                showResult('checkoutResult', 'Please fill in all fields', 'error');
+                return;
+            }
+
+            try {
+                showLoading('checkoutResult');
+
+                // Call the /subscribe endpoint to get a payment link
+                const result = await makeRequest('api/subscribe', {
+                    customer_email: email,
+                    product_id: productId,
+                    billing_interval: billingInterval
+                });
+
+                // Payment link is now guaranteed to be provided by our API
+                const paymentLink = result.payment_link;
+                
+                if (!paymentLink) {
+                    console.log('Full API response:', result);
+                    throw new Error('The API response did not include a payment_link. Check console for full response.');
+                }
+
+                showResult('checkoutResult', `✅ Subscription created! Redirecting to checkout...
+
+Dodo Subscription ID: ${result.dodo_subscription_id}
+Payment Link: ${paymentLink}`, 'success');
+
+                // Redirect to the received Dodo Payments checkout URL
+                setTimeout(() => {
+                    window.open(paymentLink, '_blank');
+                }, 1000);
+
+            } catch (error) {
+                showResult('checkoutResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-focus first input
+        document.getElementById('baseUrl').focus();
+    </script>
+</body>
+</html>
