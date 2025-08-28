@@ -19,8 +19,8 @@ export const appConfig = {
 };
 
 // Utility function to create checkout URLs
-export function createCheckoutUrl(productId: string): string {
-  return `${appConfig.checkoutUrl}/buy/${productId}`;
+export function createCheckoutUrl(productId: string, email: string): string {
+  return `${appConfig.checkoutUrl}/buy/${productId}?email=${email}`;
 }
 
 // Validate required environment variables

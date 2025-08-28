@@ -102,12 +102,10 @@ app.post('/api/subscribe', async (req, res) => {
       trial_period_days
     });
 
-    const checkoutUrl = createCheckoutUrl(product_id);
-
     res.status(201).json({
       success: true,
       subscription: result.subscription,
-      payment_link: checkoutUrl,
+      payment_link: result.payment_link,
       dodo_subscription_id: result.dodo_subscription_id,
       message: 'Subscription created successfully'
     });

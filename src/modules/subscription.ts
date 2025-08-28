@@ -65,8 +65,7 @@ export async function createSubscriptionFlow(
 
     console.log('Subscription created successfully:', supabaseSubscription.id);
     
-    // Create checkout URL using the product_id since Dodo doesn't provide payment_link
-    const checkoutUrl = createCheckoutUrl(subscriptionData.product_id);
+    const checkoutUrl = createCheckoutUrl(subscriptionData.product_id, subscriptionData.customer_email);
     
     return {
       subscription: supabaseSubscription,
