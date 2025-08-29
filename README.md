@@ -67,8 +67,8 @@ https://your-project-id.supabase.co/functions/v1/webhook
 
 Select these events:
 - `subscription.active`
-- `subscription.cancelled`  
-- `payment.succeeded`
+- `subscription.cancelled`
+- `subscription.renewed`
 
 ## 🧪 Testing the Flow
 
@@ -197,7 +197,7 @@ POST https://your-project.supabase.co/functions/v1/webhook
 
 ### ✅ Webhook Handling  
 - 🔓 **No authentication required** - perfect for testing!
-- Event processing (subscription active/cancelled, payments)
+- Event processing (subscription active/cancelled/renewed)
 - Database updates in real-time
 
 ### ✅ Plug & Play
