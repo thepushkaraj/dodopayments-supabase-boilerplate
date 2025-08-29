@@ -122,42 +122,7 @@ export async function cancelDodoSubscription(dodoClient: DodoPayments, subscript
   }
 }
 
-// Payment operations
-export async function createDodoPayment(
-  dodoClient: DodoPayments,
-  paymentData: {
-    customer_id: string;
-    product_cart: Array<{ product_id: string; quantity: number }>;
-    billing: {
-      city: string;
-      country: any;
-      state: string;
-      street: string;
-      zipcode: string;
-    };
-  }
-) {
-  try {
-    const payment = await dodoClient.payments.create({
-      customer: { customer_id: paymentData.customer_id },
-      product_cart: paymentData.product_cart,
-      billing: paymentData.billing,
-    });
 
-    return payment;
-  } catch (error) {
-    throw new Error(`Failed to create Dodo payment: ${error}`);
-  }
-}
-
-export async function getDodoPayment(dodoClient: DodoPayments, paymentId: string) {
-  try {
-    const payment = await dodoClient.payments.retrieve(paymentId);
-    return payment;
-  } catch (error) {
-    throw new Error(`Failed to retrieve Dodo payment: ${error}`);
-  }
-}
 
 // Product operations
 export async function createDodoProduct(

@@ -140,54 +140,7 @@ export async function getSubscriptionByDodoId(supabase: SupabaseClient, dodoSubs
   return data;
 }
 
-// Payment operations
-export async function createPayment(
-  supabase: SupabaseClient,
-  payment: {
-    customer_id: string;
-    subscription_id?: string;
-    dodo_payment_id: string;
-    amount: number;
-    currency: string;
-    status: string;
-    payment_method?: string;
-  }
-) {
-  const { data, error } = await supabase
-    .from('payments')
-    .insert([payment])
-    .select()
-    .single();
 
-  if (error) {
-    throw new Error(`Failed to create payment: ${error.message}`);
-  }
-
-  return data;
-}
-
-export async function updatePayment(
-  supabase: SupabaseClient,
-  dodoPaymentId: string, 
-  updates: {
-    status?: string;
-    payment_method?: string;
-    updated_at?: string;
-  }
-) {
-  const { data, error } = await supabase
-    .from('payments')
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .eq('dodo_payment_id', dodoPaymentId)
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to update payment: ${error.message}`);
-  }
-
-  return data;
-}
 
 // Webhook operations
 export async function logWebhookEvent(

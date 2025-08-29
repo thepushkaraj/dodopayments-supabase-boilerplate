@@ -137,12 +137,12 @@ npx supabase functions logs webhook
 
 ### 1. Customer Creation Flow
 ```
-Frontend → Main App API → Create in Supabase → Create in Dodo Payments → Return Customer
+Frontend → Express API → Create in Supabase → Create in Dodo Payments → Return Customer
 ```
 
 ### 2. Subscription Flow  
 ```
-Frontend → Main App API → Create Dodo Subscription → Return Payment Link → User Checkout
+Frontend → Express API → Create Pending Subscription → Return Checkout Link → User Payment → Webhook → Activate Subscription
 ```
 
 ### 3. Webhook Processing (After Payment)
@@ -152,11 +152,10 @@ Dodo Event → Supabase Function → Verify Signature → Update Database → Sy
 
 ## 🗄️ Database Schema
 
-**Simple 4-table design:**
+**Simple 3-table design:**
 
 - `customers` - User info + Dodo customer mapping
 - `subscriptions` - Subscription status and billing
-- `payments` - Payment transaction records  
 - `webhook_events` - Event logging and debugging
 
 ## 🛡️ Security Features
@@ -184,7 +183,7 @@ GET http://localhost:3000/api/customers/:email
 
 ### Webhook Processing (Supabase Function)
 ```typescript
-// Process webhooks (automatic from Dodo Payments)
+// Process webhooks (automatic from DodoPayments)
 POST https://your-project.supabase.co/functions/v1/webhook
 ```
 
@@ -196,7 +195,7 @@ POST https://your-project.supabase.co/functions/v1/webhook
 - External customer ID persistence
 
 ### ✅ Webhook Handling  
-- 🔓 **No authentication required** - perfect for testing!
+- 🔐 **Signature verification required** - webhooks are authenticated using signatures.
 - Event processing (subscription active/cancelled/renewed)
 - Database updates in real-time
 
@@ -211,12 +210,6 @@ POST https://your-project.supabase.co/functions/v1/webhook
 - Easy to extend
 
 ## 🚨 Troubleshooting
-
-**Webhook 401 Error?**
-```bash
-# Deploy without JWT verification
-npx supabase functions deploy webhook --no-verify-jwt --use-docker=false
-```
 
 **Database Connection Issues?**
 ```bash

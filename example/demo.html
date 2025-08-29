@@ -281,7 +281,7 @@
                     <li><strong>Create a Customer:</strong> Use Step 1 to sign up a new user. This creates records in both Supabase and Dodo Payments.</li>
                     <li><strong>Create Subscription:</strong> Use Step 2 to initiate a subscription for the customer from Step 1.</li>
                     <li><strong>Complete Payment:</strong> You will be redirected to the Dodo Payments checkout page. Complete the test payment.</li>
-                    <li><strong>Check Webhook Logs:</strong> In your terminal, view the webhook logs using `npx supabase functions logs webhook`. You should see a `payment.succeeded` and `subscription.active` event.</li>
+                    <li><strong>Check Webhook Logs:</strong> In your terminal, view the webhook logs using `npx supabase functions logs webhook`. You should see a `subscription.active` event.</li>
                     <li><strong>Verify Database:</strong> Go to your Supabase dashboard and check that the `subscriptions` table for your customer has been updated to `active`.</li>
                 </ol>
             </div>

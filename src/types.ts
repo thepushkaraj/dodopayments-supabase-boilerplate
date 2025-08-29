@@ -21,18 +21,7 @@ export interface Subscription {
   updated_at: string;
 }
 
-export interface Payment {
-  id: string;
-  customer_id: string;
-  subscription_id?: string;
-  dodo_payment_id: string;
-  amount: number;
-  currency: string;
-  status: 'succeeded' | 'failed' | 'processing' | 'cancelled';
-  payment_method?: string;
-  created_at: string;
-  updated_at: string;
-}
+
 
 export interface WebhookEvent {
   id: string;
