@@ -305,5 +305,3 @@ async function handleSubscriptionEvent(supabase: SupabaseClient, data: any, stat
     throw error;
   }
 }
-
-

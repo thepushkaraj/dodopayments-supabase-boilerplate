@@ -46,6 +46,8 @@ CREATE TABLE webhook_events (
     event_type VARCHAR(100) NOT NULL,
     data JSONB NOT NULL,
     processed BOOLEAN DEFAULT FALSE,
+    processed_at TIMESTAMP WITH TIME ZONE,
+    error_message TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -61,6 +63,7 @@ CREATE INDEX idx_payments_dodo_id ON payments(dodo_payment_id);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_webhook_events_type ON webhook_events(event_type);
 CREATE INDEX idx_webhook_events_processed ON webhook_events(processed);
+CREATE INDEX idx_webhook_events_processed_at ON webhook_events(processed_at);
 CREATE INDEX idx_webhook_events_created_at ON webhook_events(created_at);
 
 -- Create updated_at trigger function
@@ -143,3 +146,5 @@ COMMENT ON COLUMN payments.dodo_payment_id IS 'External payment ID from Dodo Pay
 COMMENT ON COLUMN payments.amount IS 'Payment amount in cents';
 COMMENT ON COLUMN webhook_events.data IS 'Full webhook payload as JSON';
 COMMENT ON COLUMN webhook_events.processed IS 'Whether this webhook event has been processed';
+COMMENT ON COLUMN webhook_events.processed_at IS 'Timestamp when the webhook event was processed';
+COMMENT ON COLUMN webhook_events.error_message IS 'Error message if webhook processing failed';
