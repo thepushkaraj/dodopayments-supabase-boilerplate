@@ -128,7 +128,12 @@ export async function getSubscriptionByDodoId(supabase: SupabaseClient, dodoSubs
     .eq('dodo_subscription_id', dodoSubscriptionId)
     .single();
 
-  if (error && error.code !== 'PGRST116') {
+  // Return null if no subscription found (PGRST116 is "not found" error)
+  if (error && error.code === 'PGRST116') {
+    return null;
+  }
+
+  if (error) {
     throw new Error(`Failed to get subscription: ${error.message}`);
   }
 

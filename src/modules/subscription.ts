@@ -36,42 +36,37 @@ export async function createSubscriptionFlow(
       throw new Error('Customer not found. Please sign up first.');
     }
 
-    console.log('Creating subscription in Dodo Payments...');
+    console.log('Creating subscription flow - NOT creating in DodoPayments yet...');
     
-    const dodoSubscription = await createDodoSubscription(dodoClient, {
-      customer_id: customer.dodo_customer_id,
-      product_id: subscriptionData.product_id,
-      billing_interval: subscriptionData.billing_interval,
-      trial_period_days: subscriptionData.trial_period_days,
-      payment_frequency_count: 1,
-      payment_frequency_interval: subscriptionData.billing_interval,
-    });
-
-    if (!dodoSubscription || !dodoSubscription.subscription_id) {
-      throw new Error('Failed to create subscription in Dodo Payments');
-    }
-
-    // Create subscription record in Supabase
-    console.log('Creating subscription in Supabase...');
+    // NOTE: We no longer create the subscription in DodoPayments here
+    // Instead, we only create the database record and the checkout URL
+    // The actual DodoPayments subscription will be created when the user pays
+    // This prevents duplicate subscriptions in DodoPayments dashboard
+    
+    // Generate a temporary subscription ID for database record
+    const tempSubscriptionId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Create subscription record in Supabase with pending status
+    console.log('Creating pending subscription in Supabase...');
     const supabaseSubscription = await createSubscription(supabase, {
       customer_id: customer.id,
-      dodo_subscription_id: dodoSubscription.subscription_id,
+      dodo_subscription_id: tempSubscriptionId, // Temporary ID until actual payment
       product_id: subscriptionData.product_id,
       status: 'pending',
       billing_interval: subscriptionData.billing_interval,
-      amount: dodoSubscription.recurring_pre_tax_amount || 0,
+      amount: 0, // Will be updated when subscription is actually created in DodoPayments
       currency: 'USD',
     });
 
-    console.log('Subscription created successfully:', supabaseSubscription.id);
+    console.log('Pending subscription created successfully:', supabaseSubscription.id);
     
     const checkoutUrl = createCheckoutUrl(subscriptionData.product_id, subscriptionData.customer_email);
     
     return {
       subscription: supabaseSubscription,
       payment_link: checkoutUrl,
-      client_secret: dodoSubscription.client_secret || null,
-      dodo_subscription_id: dodoSubscription.subscription_id,
+      client_secret: null, // No client secret since no DodoPayments subscription yet
+      dodo_subscription_id: tempSubscriptionId,
     };
 
   } catch (error) {
@@ -93,36 +88,93 @@ export async function handleSubscriptionWebhook(
   status: string
 ): Promise<void> {
   try {
-    // Update or create subscription (matches webhook function logic)
+    console.log('🔄 Processing subscription webhook:', JSON.stringify(subscriptionData, null, 2));
+    
+    if (!subscriptionData.subscription_id) {
+      console.warn('❌ No subscription_id in webhook data');
+      return;
+    }
+
+    // Check for existing subscription first (by actual DodoPayments subscription ID)
+    console.log(`🔍 Looking for subscription with Dodo ID: ${subscriptionData.subscription_id}`);
     const existing = await getSubscriptionByDodoId(supabase, subscriptionData.subscription_id);
 
     if (existing) {
       // Update existing subscription
+      console.log(`📝 Updating existing subscription (current status: ${existing.status})`);
       await updateSubscription(supabase, subscriptionData.subscription_id, { 
         status, 
         updated_at: new Date().toISOString() 
       });
-      console.log(`✅ Updated subscription to ${status}`);
+      console.log(`✅ Updated subscription from ${existing.status} to ${status}`);
     } else {
-      // Create new subscription (needs customer_id from the webhook customer data)
+      // No existing subscription found - check for pending subscription with temp ID
+      console.log('📝 No existing subscription found, checking for pending subscription');
+      
+      if (!subscriptionData.customer || !subscriptionData.customer.customer_id) {
+        console.warn('❌ No customer data in subscription webhook');
+        return;
+      }
+
       const customerRecord = await supabase
         .from('customers')
         .select('id')
         .eq('dodo_customer_id', subscriptionData.customer.customer_id)
         .single();
 
+      if (customerRecord.error) {
+        console.error('❌ Customer not found for subscription:', customerRecord.error);
+        throw new Error(`Customer not found: ${customerRecord.error.message}`);
+      }
+
       if (customerRecord.data) {
-        await createSubscription(supabase, {
-          customer_id: customerRecord.data.id,
+        const customerId = customerRecord.data.id;
+        
+        // Check if there's a pending subscription with a temporary ID for this customer and product
+        console.log('🔍 Looking for pending subscription with temporary ID...');
+        const pendingSubscriptionResult = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('customer_id', customerId)
+          .eq('product_id', subscriptionData.product_id || 'unknown')
+          .eq('status', 'pending')
+          .like('dodo_subscription_id', 'temp_%')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        const newSubscriptionData = {
+          customer_id: customerId,
           dodo_subscription_id: subscriptionData.subscription_id,
-          product_id: subscriptionData.product_id,
+          product_id: subscriptionData.product_id || 'unknown',
           status,
           billing_interval: subscriptionData.payment_frequency_interval?.toLowerCase() || 'month',
           amount: subscriptionData.recurring_pre_tax_amount || 0,
           currency: subscriptionData.currency || 'USD',
           next_billing_date: subscriptionData.next_billing_date,
-        });
-        console.log(`✅ Created new subscription with ${status} status`);
+        };
+
+        if (!pendingSubscriptionResult.error && pendingSubscriptionResult.data) {
+          console.log('📝 Updating existing pending subscription with real DodoPayments data');
+          
+          const updateResult = await supabase
+            .from('subscriptions')
+            .update(newSubscriptionData)
+            .eq('id', pendingSubscriptionResult.data.id)
+            .select();
+
+          if (updateResult.error) {
+            console.error('❌ Failed to update pending subscription:', updateResult.error);
+            throw new Error(`Failed to update pending subscription: ${updateResult.error.message}`);
+          }
+
+          console.log(`✅ Updated pending subscription to ${status} status`);
+        } else {
+          // No pending subscription found, create new one
+          console.log('📋 Creating new subscription:', JSON.stringify(newSubscriptionData, null, 2));
+          await createSubscription(supabase, newSubscriptionData);
+          console.log(`✅ Created new subscription with ${status} status`);
+        }
       }
     }
   } catch (error) {

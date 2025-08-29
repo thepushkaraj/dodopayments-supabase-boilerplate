@@ -70,18 +70,6 @@ export interface WebhookPayload {
       next_billing_date?: string;
       cancelled_at?: string;
     };
-    payment?: {
-      payment_id: string;
-      customer: {
-        customer_id: string;
-        email: string;
-        name: string;
-      };
-      total_amount: number;
-      currency: string;
-      status: string;
-      payment_method?: string;
-    };
   };
   timestamp: string;
 }

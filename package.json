@@ -23,7 +23,12 @@
   "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.38.4",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "cors": "^2.8.5",
     "dodopayments": "^1.0.0",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
     "standardwebhooks": "^1.0.0"
   },
   "devDependencies": {

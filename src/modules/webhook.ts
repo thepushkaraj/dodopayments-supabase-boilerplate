@@ -1,6 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { verifyWebhook } from '../lib/verifyWebhook.js';
-import { logWebhookEvent, markWebhookProcessed, createPayment } from '../lib/supabase.js';
+import { logWebhookEvent, markWebhookProcessed } from '../lib/supabase.js';
 import { syncCustomerFromWebhook } from './customer.js';
 import { handleSubscriptionWebhook } from './subscription.js';
 import { WebhookPayload } from '../types.js';
@@ -60,8 +60,9 @@ export async function processWebhook(
       case 'subscription.cancelled':
         await handleSubscriptionEvent(supabase, eventData, 'cancelled');
         break;
-      case 'payment.succeeded':
-        await handlePaymentEvent(supabase, eventData, 'succeeded');
+      case 'subscription.renewed':
+        console.log('🔄 Subscription renewed - keeping active status and updating billing date');
+        await handleSubscriptionEvent(supabase, eventData, 'active');
         break;
       default:
         console.log(`ℹ️ Event ${eventType} logged but not processed`);
@@ -125,40 +126,3 @@ async function handleSubscriptionEvent(supabase: SupabaseClient, data: any, stat
   await handleSubscriptionWebhook(supabase, data, status);
 }
 
-/**
- * Handle payment events (matches webhook function logic)
- * @param supabase - Supabase client instance
- * @param data - Event data
- * @param status - Payment status
- */
-async function handlePaymentEvent(supabase: SupabaseClient, data: any, status: string) {
-  const customer = data.customer;
-  
-  if (!customer || !data.payment_id) {
-    console.warn('No customer or payment_id in payment webhook');
-    return;
-  }
-  
-  // Find customer
-  const { data: customerRecord } = await supabase
-    .from('customers')
-    .select('id')
-    .eq('dodo_customer_id', customer.customer_id)
-    .single();
-
-  if (customerRecord) {
-    // Log the payment using official Dodo webhook structure
-    await createPayment(supabase, {
-      customer_id: customerRecord.id,
-      dodo_payment_id: data.payment_id,
-      amount: data.total_amount || 0,
-      currency: data.currency || 'USD',
-      status,
-      payment_method: data.payment_method || null,
-    });
-    
-    console.log(`✅ Logged payment ${status}`);
-  } else {
-    console.warn('Payment received but customer not found');
-  }
-}
